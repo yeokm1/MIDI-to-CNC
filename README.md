@@ -1,5 +1,5 @@
 # midi-to-simple-metal-gcode
-Convert a MIDI music file to gcode instructions compatible with the Printrbot Simple Metal. The conversion code was obtained from where this repository was [forked from](https://github.com/michthom/MIDI-to-CNC).
+Convert a MIDI music file to gcode instructions compatible with the Printrbot Simple Metal. The conversion code was obtained from where this repository was [forked from](https://github.com/michthom/MIDI-to-CNC). My version for the Ultimaker 2 can be found [here](https://github.com/yeokm1/midi-to-ultimaker2-gcode).
 
 The concept behind how a 3D printer can generate musical tunes is explained [here](http://zeroinnovations.com/how-to-play-the-imperial-march-on-a-3d-printer/). That author also uses a Printrbot Simple Metal as well but did not mention his instructions so I created a short tutorial below.
 
