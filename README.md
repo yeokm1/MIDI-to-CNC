@@ -64,3 +64,4 @@ Send the Gcode file to your printer using your favourite 3D-printer control soft
 2. [Imperial March on 3D Printer](http://zeroinnovations.com/3dprinting/how-to-play-the-imperial-march-on-a-3d-printer.html)
 3. [Fringe Midi video](http://www.youtube.com/watch?v=oOMQ1LWBasw)
 4. [Portal 2 Still Alive Score](http://sebastianwolff.info/blog/2008/12/still-alive-sheet-music/)
+5. [Happy Birthday Midi file](http://www.geburtstagsvorlagen.de/musik/happy_birthday_midi_files.html)
