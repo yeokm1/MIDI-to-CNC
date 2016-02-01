@@ -85,7 +85,7 @@ I normally set this after I have done playing
 ```
 #To view the current setting
 M909
-#To set all motors to 90% of max current.
+#To set all motors to lower current levels to reduce noise
 M907 X20 Y20 Z70 E30 
 #Save the current setting
 M910
