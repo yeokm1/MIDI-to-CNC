@@ -69,3 +69,4 @@ Send the Gcode file to your printer using your favourite 3D-printer control soft
 3. [Fringe Midi video](http://www.youtube.com/watch?v=oOMQ1LWBasw)
 4. [Portal 2 Still Alive Score](http://sebastianwolff.info/blog/2008/12/still-alive-sheet-music/)
 5. [Happy Birthday Midi file](http://www.geburtstagsvorlagen.de/musik/happy_birthday_midi_files.html)
+6. [Original Rey's theme Midi source)](https://www.youtube.com/watch?v=fGkkUm3OqCg) I modified the downloaded file to remove the second piano track to reduce the number of simultaneous notes so the printer can play them.
