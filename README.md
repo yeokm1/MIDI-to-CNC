@@ -20,6 +20,10 @@ Birthday Song
 
 Fringe opening theme. The reference piano-video for this can be viewed [here](http://www.youtube.com/watch?v=oOMQ1LWBasw).
 
+[![](http://img.youtube.com/vi/QDdWfpenLZ4/0.jpg)](https://www.youtube.com/watch?v=QDdWfpenLZ4)
+
+Rey's Theme (Star Wars). The reference piano-video for this can be viewed [here](https://www.youtube.com/watch?v=fGkkUm3OqCg).
+
 The Gcode for these are placed inside ```gcode_files``` directory.
 
 ##How to convert a midi file for the Printrbot Simple Metal?
