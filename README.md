@@ -63,6 +63,32 @@ Send the Gcode file to your printer using your favourite 3D-printer control soft
 1. Python 2
 2. Any 3D-Printer control software that allows you to send custom Gcode commands
 
+##Motor Current notes
+The volume the printer produces correlates to the motor current setting. You might want to increase the motor current before playing music then reduce the current later once you decide to use the 3D-printer as it was meant to do. 
+
+Send the following Gcodes if you wish to change the motor current setting
+
+```
+#To view the current setting
+M909
+#To set all motors to 90% of max current.
+M907 X90 Y90 Z90 E90 
+#Save the current setting
+M910
+```
+
+I normally set this after I have done playing
+```
+#To view the current setting
+M909
+#To set all motors to 90% of max current.
+M907 X20 Y20 Z70 E30 
+#Save the current setting
+M910
+```
+
+
+
 ##Resources
 1. [Singapore National Anthem Midi file](http://www.midiworld.com/download/4159)
 2. [Imperial March on 3D Printer](http://zeroinnovations.com/3dprinting/how-to-play-the-imperial-march-on-a-3d-printer.html)
