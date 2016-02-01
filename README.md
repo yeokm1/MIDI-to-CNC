@@ -12,6 +12,10 @@ Playing the Singapore National Anthem.
 
 Portal Still Alive.
 
+[![](http://img.youtube.com/vi/FjlWI755P6U/0.jpg)](https://www.youtube.com/watch?v=FjlWI755P6U)
+
+Birthday Song
+
 [![](http://img.youtube.com/vi/en3cRWAqXwg/0.jpg)](https://www.youtube.com/watch?v=en3cRWAqXwg)
 
 Fringe opening theme. The reference piano-video for this can be viewed [here](http://www.youtube.com/watch?v=oOMQ1LWBasw).
