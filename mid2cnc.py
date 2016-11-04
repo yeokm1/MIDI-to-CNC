@@ -163,7 +163,7 @@ input=parser.add_argument_group('Input settings')
 
 input.add_argument(
     '-infile', '--infile',
-    default = './midi_files/input.mid',
+    default = './midi-files/input.mid',
     nargs   = '?',
     type    = argparse.FileType('r'),
     help    = 'the input MIDI filename'
@@ -181,7 +181,7 @@ input.add_argument(
 
 input.add_argument(
     '-outfile', '--outfile',
-    default = './gcode_files/output.gcode',
+    default = './gcode-files/output.gcode',
     nargs   = '?',
     type    = argparse.FileType('w'),
     help    = 'the output Gcode filename'
