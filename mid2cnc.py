@@ -111,7 +111,16 @@ axes_dict = dict( {
         'ZXY':[2,0,1], 'ZYX':[2,1,0]
     })
 
-def reached_limit(current, distance, direction, min, max):
+
+def per_note_gcode(rpm, duration):
+    gcode_string = ["S%.10f;" % rpm,
+                    "#802= #802 + #801 * %.10f;" % duration,
+                    "X#802 F34.0;",
+                    "G4 P25 (dwell);"]
+    return "\n".join(gcode_string)
+
+
+def reached_limit(current, distance, min_v, max_v):
     # Returns true if the proposed movement will exceed the
     # safe working limits of the machine but the movement is
     # allowable in the reverse direction
@@ -121,19 +130,15 @@ def reached_limit(current, distance, direction, min, max):
     # 
     # Aborts if the movement is not possible in either direction
 
-    if ( ( (current + (distance * direction)) < max ) and 
-         ( (current + (distance * direction)) > min ) ):
+    if ((current + distance) < max_v) and ((current + distance) > min_v):
         # Movement in the current direction is within safe limits,
         return False
-
-    elif ( ( (current + (distance * direction)) >= max ) and 
-           ( (current - (distance * direction)) >  min ) ):
+    elif ((current + distance) >= max_v) and ((current - distance) > min_v):
         # Movement in the current direction violates maximum safe
         # value, but would be safe if the direction is reversed
         return True
 
-    elif ( ( (current + (distance * direction)) <= min ) and 
-           ( (current - (distance * direction)) <  max ) ):
+    elif ((current + distance) <= min_v) and ((current - distance) < max_v):
         # Movement in the current direction violates minimum safe
         # value, but would be safe if the direction is reversed
         return True
@@ -163,7 +168,7 @@ input=parser.add_argument_group('Input settings')
 
 input.add_argument(
     '-infile', '--infile',
-    default = './midi_files/input.mid',
+    default = './midi-files/input.mid',
     nargs   = '?',
     type    = argparse.FileType('r'),
     help    = 'the input MIDI filename'
@@ -181,7 +186,7 @@ input.add_argument(
 
 input.add_argument(
     '-outfile', '--outfile',
-    default = './gcode_files/output.gcode',
+    default = './gcode-files/output.gcode',
     nargs   = '?',
     type    = argparse.FileType('w'),
     help    = 'the output Gcode filename'
@@ -426,18 +431,8 @@ def main(argv):
 
     if suppress_comments == 0:
         args.outfile.write ("( Input file was " + os.path.basename(args.infile.name) + " )\n")
-        
-    # Code for everyone
-    if args.units == 'imperial':
-        args.outfile.write ("G20 (Imperial Hegemony Forevah!)\n")
-    elif args.units == 'metric':
-        args.outfile.write ("G21 (Metric FTW)\n")
-    else:
-        print "\nWARNING: Gcode metric/imperial setting undefined!\n"
 
-    args.outfile.write ("G90 (Absolute posiitioning)\n")
-    args.outfile.write ("G92 X0 Y0 Z0 (set origin to current position)\n")
-    args.outfile.write ("G0 X0 Y0 Z0 F2000.0 (Pointless move to origin to reset feed rate to a sane value)\n")
+
 
     # Handle the prefix Gcode, if present
     if args.prefix != None:
@@ -449,10 +444,10 @@ def main(argv):
         # note[timestamp, note off/note on, note_no, velocity]
         if last_time < note[0]:
         
-            freq_xyz=[0,0,0]
-            feed_xyz=[0,0,0]
-            distance_xyz=[0,0,0]
-            duration=0
+            freq_x = 0
+            feed_x = 34.0
+            distance_x = 0
+            duration = 0
 
             # "i" ranges from 0 to "the number of active notes *or* the number of active axes, 
             # whichever is LOWER". Note that the range operator stops
@@ -460,24 +455,19 @@ def main(argv):
             # E.g. only look for the first few active notes to play despite what
             # is going on in the actual score.
 
-            for i in range(0, min(len(active_notes.values()), active_axes)): 
-
-                # Which axis are should we be writing to?
-                # 
-                j = axes_dict.get(args.axes)[i]
-
+            for i in range(0, min(len(active_notes.values()), 1)):
                 # Debug
                 # print"Axes %s: item %d is %d" % (axes_dict.get(args.axes), i, j)
 
                 # Sound higher pitched notes first by sorting by pitch then indexing by axis
                 #
-                nownote=sorted(active_notes.values(), reverse=True)[i]
+                nownote = sorted(active_notes.values(), reverse=True)[i]
 
                 # MIDI note 69     = A4(440Hz)
                 # 2 to the power (69-69) / 12 * 440 = A4 440Hz
                 # 2 to the power (64-69) / 12 * 440 = E4 329.627Hz
                 #
-                freq_xyz[j] = pow(2.0, (nownote-69)/12.0)*440.0 
+                freq_x = pow(2.0, (nownote-69)/12.0)*440.0 
 
                 # Here is where we need smart per-axis feed conversions
                 # to enable use of X/Y *and* Z on a Makerbot
@@ -487,65 +477,61 @@ def main(argv):
                 # Feed rate is expressed in mm / minutes so 60 times
                 # scaling factor is required.
                 
-                feed_xyz[j] = ( freq_xyz[j] * 60.0 ) / args.ppu[j]
+                # feed_xyz[j] = ( freq_xyz[j] * 60.0 ) / args.ppu[j]
 
                 # Get the duration in seconds from the MIDI values in divisions, at the given tempo
-                duration = ( ( ( note[0] - last_time ) + 0.0 ) / ( midi.division + 0.0 ) * ( tempo / 1000000.0 ) )
+                duration = (((note[0] - last_time) + 0.0) / (midi.division + 0.0) * (tempo / 1000000.0))
 
                 # Get the actual relative distance travelled per axis in mm
-                distance_xyz[j] = ( feed_xyz[j] * duration ) / 60.0 
+                distance_x = (feed_x * duration) / 60.0
+
 
             # Now that axes can be addressed in any order, need to make sure
             # that all of them are silent before declaring a rest is due.
-            if distance_xyz[0] + distance_xyz[1] + distance_xyz[2] > 0: 
+            if distance_x > 0:
                 # At least one axis is playing, so process the note into
                 # movements
                 #
-                combined_feedrate = math.sqrt(feed_xyz[0]**2 + feed_xyz[1]**2 + feed_xyz[2]**2)
-                
+                combined_feedrate = feed_x
+
                 if args.verbose:
-                    print "Chord: [%7.3f, %7.3f, %7.3f] in Hz for %5.2f seconds at timestamp %i" % (freq_xyz[0], freq_xyz[1], freq_xyz[2], duration, note[0])
-                    print " Feed: [%7.3f, %7.3f, %7.3f] XYZ %s/min and %8.2f combined" % (feed_xyz[0], feed_xyz[1], feed_xyz[2], scheme[1], combined_feedrate )
-                    print "Moves: [%7.3f, %7.3f, %7.3f] XYZ relative %s" % (distance_xyz[0], distance_xyz[1], distance_xyz[2], scheme[0] )
+                    print "Chord: [%7.3f] in Hz for %5.2f seconds at timestamp %i" % (freq_x, duration, note[0])
+                    print "Feed: [%7.3f] XYZ %s/min and %8.2f combined" % (feed_x, scheme[1], combined_feedrate )
+                    print "Moves: [%7.3f] XYZ relative %s" % (distance_x, scheme[0] )
 
                 # Turn around BEFORE crossing the limits of the 
                 # safe working envelope
                 #
-                if reached_limit( x, distance_xyz[0], x_dir, args.safemin[0], args.safemax[0] ):
-                    x_dir = x_dir * -1
-                x = (x + (distance_xyz[0] * x_dir))
-               
-                if reached_limit( y, distance_xyz[1], y_dir, args.safemin[1], args.safemax[1] ):
-                    y_dir = y_dir * -1
-                y = (y + (distance_xyz[1] * y_dir))
-               
-                if reached_limit( z, distance_xyz[2], z_dir, args.safemin[2], args.safemax[2] ):
-                    z_dir = z_dir * -1
-                z = (z + (distance_xyz[2] * z_dir))
-               
-                if args.verbose:
-                    print "G01 X%.10f Y%.10f Z%.10f F%.10f\n" % (x, y, z, combined_feedrate)
-                args.outfile.write("G01 X%.10f Y%.10f Z%.10f F%.10f\n" % (x, y, z, combined_feedrate))
+                if reached_limit(x, distance_x, args.safemin[0], args.safemax[0]):
+                    x = (x + (distance_x * x_dir))
 
-            else:
-                # Handle 'rests' in addition to notes.
-                # How standard is this pause gcode, anyway?
-                args.outfile.write("G04 P%0.4f\n" % duration )
+                min_rpm = min(2000.0, (freq_x * 10.0))
+                max_rpm = max(12000.0, (freq_x * 10.0))
+                rpm = freq_x * 10.0
+
+                if 2000.0 <= rpm and rpm <= 12000.0:
+                    note_gcode = per_note_gcode(rpm, distance_x)
+                elif rpm < 2000.0:
+                    note_gcode = per_note_gcode(2000.0, distance_x)
+                else:
+                    note_gcode = per_note_gcode(12000.0, distance_x)
+
                 if args.verbose:
-                    print "Pause for %.2f seconds" % duration
-                    print "G04 P%0.4f\n" % duration
+                    print note_gcode
+                args.outfile.write(note_gcode)
+
 
             # finally, set this absolute time as the new starting time
             last_time = note[0]
 
-        if note[1]==1: # Note on
+        if note[1] == 1: # Note on
             if active_notes.has_key(note[2]):
                 if args.verbose:
                     print "Warning: tried to turn on note already on!"
             else:
                 # key and value are the same, but we don't really care.
                 active_notes[note[2]]=note[2]
-        elif note[1]==0: # Note off
+        elif note[1] == 0: # Note off
             if(active_notes.has_key(note[2])):
                 active_notes.pop(note[2])
             else:
