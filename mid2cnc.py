@@ -505,7 +505,16 @@ def main(argv):
                 if reached_limit(x, distance_x, args.safemin[0], args.safemax[0]):
                     x = (x + (distance_x * x_dir))
 
-                note_gcode = per_note_gcode((freq_x * 10.0), distance_x)
+                min_rpm = min(2000.0, (freq_x * 10.0))
+                max_rpm = max(12000.0, (freq_x * 10.0))
+                rpm = freq_x * 10.0
+
+                if 2000.0 <= rpm and rpm <= 12000.0:
+                    note_gcode = per_note_gcode(rpm, distance_x)
+                elif rpm < 2000.0:
+                    note_gcode = per_note_gcode(2000.0, distance_x)
+                else:
+                    note_gcode = per_note_gcode(12000.0, distance_x)
 
                 if args.verbose:
                     print note_gcode
